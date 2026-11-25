@@ -18,5 +18,4 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	logger.Info("server started", "port", config.Port())
 }

@@ -18,6 +18,7 @@ func StartServer(config ServerConfig, logger *slog.Logger) error {
 		return err
 	}
 	defer ln.Close()
+	logger.Info("server started", "port", config.Port())
 
 	for {
 		conn, err := ln.Accept()
