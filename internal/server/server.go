@@ -19,7 +19,6 @@ func StartServer(config ServerConfig, logger *slog.Logger) error {
 	}
 	defer ln.Close()
 	logger.Info("server started", "port", config.Port())
-
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -37,6 +36,6 @@ func handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
-		conn.Write([]byte("din mor: " + line))
+		conn.Write([]byte("echo: " + line))
 	}
 }
