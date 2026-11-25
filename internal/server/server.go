@@ -24,11 +24,12 @@ func StartServer(config ServerConfig, logger *slog.Logger) error {
 		if err != nil {
 			return fmt.Errorf("accept: %w", err)
 		}
-		go handle(conn)
+		logger.Debug("connection accepted: " + conn.RemoteAddr().String())
+		go handle(conn, logger)
 	}
 }
 
-func handle(conn net.Conn) {
+func handle(conn net.Conn, logger *slog.Logger) {
 	defer conn.Close()
 	r := bufio.NewReader(conn)
 	for {
@@ -36,6 +37,7 @@ func handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
+		logger.Debug("received line: " + line)
 		conn.Write([]byte("echo: " + line))
 	}
 }
