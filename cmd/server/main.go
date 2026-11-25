@@ -15,7 +15,7 @@ func main() {
 	logger.Debug("starting server", "port", config.Port())
 	err := server.StartServer(config, logger)
 	if err != nil {
-		logger.Error("failed to start server", "error", err.Error())
+		logger.Error("failed to start server", "error", err)
 		os.Exit(1)
 	}
 }
