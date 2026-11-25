@@ -12,7 +12,7 @@ import (
 func ConnectToServer(c ClientConfig, logger *slog.Logger) error {
 	serverAddress := c.ServerAddress()
 	if serverAddress == "" {
-		return errors.New("ino server address set")
+		return errors.New("no server address set")
 	}
 	conn, err := net.Dial("tcp", serverAddress)
 	if err != nil {
