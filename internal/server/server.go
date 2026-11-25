@@ -23,8 +23,7 @@ func StartServer(config ServerConfig, logger *slog.Logger) error {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			logger.Error("did not accept connection: " + err.Error())
-			continue
+			return fmt.Errorf("accept: %w", err)
 		}
 		go handle(conn)
 	}
