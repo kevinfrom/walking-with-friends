@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func NewLogger() *slog.Logger {
+func NewLogger(config BaseConfig) *slog.Logger {
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 	logLevel := slog.LevelInfo
 	if debug {
