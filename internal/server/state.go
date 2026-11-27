@@ -6,10 +6,19 @@ import (
 	"sync"
 )
 
-type Player struct {
-	ID   int
-	Conn net.Conn
+const (
+	GRID_SIZE int = 12
+)
+
+type Position struct {
 	X, Y int
+}
+
+type Player struct {
+	ID        int
+	Conn      net.Conn
+	IPAddress string
+	Position
 }
 
 type GameState struct {
@@ -32,13 +41,13 @@ func (g *GameState) AddPlayer(conn net.Conn) (*Player, error) {
 	if len(g.players) >= g.config.maxPlayers {
 		return nil, errors.New("server full")
 	}
-	player := &Player{
-		ID:   g.nextID,
-		Conn: conn,
-		X:    0,
-		Y:    0,
-	}
 	g.nextID++
+	player := &Player{
+		ID:        g.nextID,
+		Conn:      conn,
+		IPAddress: conn.RemoteAddr().String(),
+		Position:  Position{X: 0, Y: 0},
+	}
 	g.players[player.ID] = player
 	return player, nil
 }

@@ -1,11 +1,13 @@
 package server
 
 import (
-	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net"
+	"walking-with-friends/internal/shared/protocol"
 )
 
 func StartServer(config ServerConfig, logger *slog.Logger) error {
@@ -34,20 +36,45 @@ func handle(state *GameState, conn net.Conn, logger *slog.Logger) {
 	defer conn.Close()
 	player, err := state.AddPlayer(conn)
 	if err != nil {
-		conn.Write([]byte("error: " + err.Error()))
 		logger.Error("failed to add player", "error", err)
+		protocol.Write(conn, protocol.MessageTypeError, protocol.ErrorPayload{
+			Code:    protocol.ErrorCodeServerFull,
+			Message: "server is full",
+		})
 		return
 	}
-	logger.Debug("player added", "player id", player.ID)
+	logPlayerGroup := slog.Group("player", "id", player.ID, "ip_address", player.IPAddress)
+	logger.Info("client connected", logPlayerGroup)
 	defer state.RemovePlayer(player)
-	r := bufio.NewReader(conn)
+	protocol.Write(conn, protocol.MessageTypeWelcome, protocol.MessagePayloadWelcome{
+		PlayerID: player.ID,
+	})
+	dec := json.NewDecoder(conn)
 	for {
-		line, err := r.ReadString('\n')
-		if err != nil {
-			logger.Error("failed to read line", "error", err)
+		var msg protocol.Message
+		if err := dec.Decode(&msg); err != nil {
+			if errors.Is(err, io.EOF) {
+				logger.Info("client disconnected", logPlayerGroup)
+				return
+			}
+			logger.Warn("bad message received", "error", err, logPlayerGroup)
+			protocol.Write(conn, protocol.MessageTypeError, protocol.ErrorPayload{
+				Code:    protocol.ErrorCodeBadMessage,
+				Message: "bad message received",
+			})
 			return
 		}
-		logger.Debug("received line", "line", line)
-		conn.Write([]byte("echo: " + line))
+		handleClientMessage(msg, logger)
+	}
+}
+
+func handleClientMessage(msg protocol.Message, logger *slog.Logger) {
+	switch msg.Type {
+	case protocol.MessageTypeMove:
+		var mp protocol.MessagePayloadMove
+		err := json.Unmarshal(msg.Payload, &mp)
+		if err != nil {
+			logger.Error("failed to unmarshal json", "error", err)
+		}
 	}
 }
