@@ -9,6 +9,7 @@ import (
 )
 
 func StartServer(config ServerConfig, logger *slog.Logger) error {
+	state := NewGameState()
 	port := config.Port()
 	if port == "" {
 		return errors.New("no port set")
@@ -25,12 +26,20 @@ func StartServer(config ServerConfig, logger *slog.Logger) error {
 			return fmt.Errorf("accept: %w", err)
 		}
 		logger.Debug("connection accepted: " + conn.RemoteAddr().String())
-		go handle(conn, logger)
+		go handle(state, conn, logger)
 	}
 }
 
-func handle(conn net.Conn, logger *slog.Logger) {
+func handle(state *GameState, conn net.Conn, logger *slog.Logger) {
 	defer conn.Close()
+	player, err := state.AddPlayer(conn)
+	if err != nil {
+		conn.Write([]byte("error: " + err.Error()))
+		logger.Error("failed to add player", "error", err)
+		return
+	}
+	logger.Debug("player added", "player id", player.ID)
+	defer state.RemovePlayer(player)
 	r := bufio.NewReader(conn)
 	for {
 		line, err := r.ReadString('\n')
