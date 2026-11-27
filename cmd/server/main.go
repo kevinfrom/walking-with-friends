@@ -8,10 +8,8 @@ import (
 
 func main() {
 	config := server.GetConfig()
-
-	logger := shared.NewLogger()
+	logger := shared.NewLogger(config.BaseConfig())
 	logger.Debug("config loaded")
-
 	logger.Debug("starting server", "port", config.Port())
 	err := server.StartServer(config, logger)
 	if err != nil {

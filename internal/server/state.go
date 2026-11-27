@@ -6,10 +6,6 @@ import (
 	"sync"
 )
 
-const (
-	MAX_PLAYERS int = 4
-)
-
 type Player struct {
 	ID   int
 	Conn net.Conn
@@ -18,12 +14,14 @@ type Player struct {
 
 type GameState struct {
 	mu      sync.Mutex
-	players map[int]*Player
 	nextID  int
+	config  ServerConfig
+	players map[int]*Player
 }
 
-func NewGameState() *GameState {
+func NewGameState(config ServerConfig) *GameState {
 	return &GameState{
+		config:  config,
 		players: make(map[int]*Player),
 	}
 }
@@ -31,7 +29,7 @@ func NewGameState() *GameState {
 func (g *GameState) AddPlayer(conn net.Conn) (*Player, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	if len(g.players) >= MAX_PLAYERS {
+	if len(g.players) >= g.config.maxPlayers {
 		return nil, errors.New("server full")
 	}
 	player := &Player{

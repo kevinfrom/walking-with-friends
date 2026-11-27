@@ -9,7 +9,7 @@ import (
 )
 
 func StartServer(config ServerConfig, logger *slog.Logger) error {
-	state := NewGameState()
+	state := NewGameState(config)
 	port := config.Port()
 	if port == "" {
 		return errors.New("no port set")
@@ -44,9 +44,10 @@ func handle(state *GameState, conn net.Conn, logger *slog.Logger) {
 	for {
 		line, err := r.ReadString('\n')
 		if err != nil {
+			logger.Error("failed to read line", "error", err)
 			return
 		}
-		logger.Debug("received line: " + line)
+		logger.Debug("received line", "line", line)
 		conn.Write([]byte("echo: " + line))
 	}
 }

@@ -9,7 +9,7 @@ import (
 func main() {
 	config := client.GetConfig()
 
-	logger := shared.NewLogger()
+	logger := shared.NewLogger(config.BaseConfig())
 	logger.Debug("config loaded")
 
 	logger.Info("connecting to server", "server", config.ServerAddress())
